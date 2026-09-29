@@ -69,18 +69,6 @@ src/
   db.py             # shared DB connection helper — import this, don't write your own
 ```
 
-## Open points 
-
-- **Week 4 stakeholder video** is not embedded in this README yet
-  ([how to embed a video](https://www.geeksforgeeks.org/git/how-to-embed-a-video-into-github-readme-md/)),
-  and the limitations it mentions still need to be compared with `docs/week5_review.md`.
-- **The week 2 report has two corrections**, recorded in
-  [`docs/week2_addendum.md`](docs/week2_addendum.md). The submitted PDF is left unchanged;
-  the addendum carries the corrections, as week 5 requires.
-- **The landlord-to-house relationship from the week 2 ERD is still not implemented**, so the
-  database cannot say who rents out a given house. Needs a group decision - see
-  `docs/week5_review.md` section 0.
-- `notebooks/`, `tests/` and `docs/SETUP.md` are referenced above but do not exist yet.
 
 ## A few things worth knowing before you start
 
