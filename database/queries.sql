@@ -19,7 +19,7 @@ JOIN People
 JOIN Landlord
     ON Landlord.People_PeopleID = People.PeopleID
 ORDER BY Contract.amount DESC;
---Select all Cities that have multiple addresses?
+--Select all Cities that have multiple addresses
 SELECT
     City.Name AS City,
     COUNT(House.address_addressID) AS Number_of_Houses,
@@ -53,7 +53,7 @@ WHERE Contract.amount > (
     FROM Contract
 )
 ORDER BY Contract.amount DESC;
-
+--retrieve all people even if they are not listed as renter or landlords
 SELECT
     People.PeopleID,
     People.First_Name,

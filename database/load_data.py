@@ -1,12 +1,12 @@
 """
-load_real_data.py - cleans the two real-world datasets and inserts them into mock.db
+load_data.py - cleans the two real-world datasets and inserts them into mock.db
 in normalized form. Every cleaning decision is documented in docs/data_cleaning.md.
 
 Datasets (raw copies in data/raw/):
   A. Inside Airbnb Amsterdam listings (CC BY 4.0, compiled 2026-06-15)
   B. Amsterdam BAG: nummeraanduidingen + verblijfsobjecten (CC0 1.0, 2022-11-04)
 
-Usage:  python database/load_real_data.py      (called by build_db.py)
+Usage:  python database/load_data.py      (called by build_db.py)
 """
 import sqlite3
 from pathlib import Path

@@ -1,6 +1,6 @@
 # Week 5 - Data cleaning and transformation
 
-All steps are implemented in `database/load_real_data.py` (run through `python database/build_db.py --yes`).
+All steps are implemented in `database/load_data.py` (run through `python database/build_db.py --yes`).
 Counts below come from the actual run.
 
 ## 1. How is missing data reported?
