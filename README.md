@@ -51,6 +51,7 @@ database/
   schema.sql        # table definitions (v2: updated in week 5 after testing with real data)
   seed_data.sql     # mock data from weeks 3-4
   load_real_data.py # cleans + inserts the two real-world datasets in normalized form
+  real_data.sql     # This file is the SQL *result* of that work, so the inserted data can be read, reviewed and replayed without pandas.
   build_db.py       # rebuilds mock.db: schema + seed data + real data
   queries.sql       # example queries (Q1-Q4 week 3, Q5-Q9 week 5)
   run_queries.py    # runs every query in queries.sql and prints the row counts
