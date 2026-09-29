@@ -45,9 +45,9 @@ setup or server install required. The real-world data is already loaded into it.
 ## Project structure
 
 ```
-data/raw/           # the real-world datasets exactly as downloaded (never edited)
+data/raw/           # the real-world datasets 
 database/
-  mock.db           # the actual database — committed directly, don't gitignore it
+  mock.db           # the actual database 
   schema.sql        # table definitions (v2: updated in week 5 after testing with real data)
   seed_data.sql     # mock data from weeks 3-4
   load_real_data.py # cleans + inserts the two real-world datasets in normalized form
@@ -59,7 +59,7 @@ docs/
   erd_report.pdf        # week 2 deliverable (ERD + normal forms), unchanged
   week2_addendum.md           # corrections to week 2 found while testing real data
   erd_v2.md                   # ERD of the current schema (renders on GitHub)
-  data_sources.md         # source, date, license of each dataset
+  data_sources.md         # source, date, license of each raw dataset
   data_cleaning.md        # missing data, date formats, duplicates, naming conventions
   schema_changes.md       # every schema/constraint change and what triggered it
   normalization_report.md # 3NF check on the real data 
