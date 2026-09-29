@@ -55,18 +55,18 @@ database/
   queries.sql       # example queries (Q1-Q4 week 3, Q5-Q9 week 5)
   run_queries.py    # runs every query in queries.sql and prints the row counts
 docs/
-  week1_societal_problem.pdf  # week 1 deliverable
-  week2_erd_report.pdf        # week 2 deliverable (ERD + normal forms), unchanged
+  societal_problem.pdf  # week 1 deliverable
+  erd_report.pdf        # week 2 deliverable (ERD + normal forms), unchanged
   week2_addendum.md           # corrections to week 2 found while testing real data
   erd_v2.md                   # ERD of the current schema (renders on GitHub)
   data_sources.md         # source, date, license of each dataset
   data_cleaning.md        # missing data, date formats, duplicates, naming conventions
   schema_changes.md       # every schema/constraint change and what triggered it
-  normalization_report.md # 3NF check on the real data (belongs with the week 2 report)
+  normalization_report.md # 3NF check on the real data 
   week5_review.md         # query results, limitations, future work
 notebooks/          # exploration / analysis — one notebook per person or task
 src/
-  db.py             # shared DB connection helper — import this, don't write your own
+  db.py          
 ```
 
 
