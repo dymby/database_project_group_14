@@ -21,3 +21,6 @@ Raw copies are stored unchanged in `data/raw/`. Both datasets are open, need no 
 The API returns records in ID order, so the 500-row samples are the first 500 records (mostly Amsterdam-Oost and part of the Jordaan; 25 postcodes, 6 streets), not a random sample. The street names for the 6 street IDs were looked up by hand in the API (`.../openbareruimtes/<id>`) because the first 500 public spaces do not include them; the mapping is stored in `bag-openbareruimtes-lookup.csv`.
 
 Attribution required by CC BY 4.0: "Data from Inside Airbnb (insideairbnb.com), CC BY 4.0."
+
+## Notes on the kaggle dataset
+This dataset was found on kaggle and contained detailed information for houses in the netherlands, sadly most of the data in there was useless, but address, city and size was used.

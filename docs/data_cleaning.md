@@ -47,3 +47,10 @@ Counts below come from the actual run.
 
 ## 6. Violations of the week 3 schema found while integrating (fixed in schema v2)
 Verified by inserting the real values into the old schema (see `docs/schema_changes.md`).
+
+## 7. Cleaning of the keggle data set
+
+I first manually extracted the important attributes in the database (ignored attributes like `number of rooms`, `garden yes no`,`...`).
+Then I focused on incorporating the price attribute into the contract table which turned out to be incredibly difficult so I decided against it. (removed `price` attribute too).
+Since address was hardcoded I had to write a script to seperate the numbers into the `number` attribute and the `street` attribute into in table `Address`.
+When inserting all the values into the Database I added the missing values as `NULL` with a safety trigger for the postalcode attribute (since it can't be `NULL`).

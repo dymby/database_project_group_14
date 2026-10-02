@@ -124,6 +124,54 @@ def load():
     log("foreign_key_violations", len(bad))
     conn.close()
 
+def clean_kaggle():
+    df = pd.read_csv(RAW / "kaggle_housing.csv", dtype={"host_id": str})
+    df[['street', 'number']] = df['Address'].str.extract(r'^(.*?)\s+(\d.*)$')
+    df['size_m2'] = df['Lot size (m2)'].str.replace(' m²', '', regex=False).astype(float)
+    return df
+
+def load_kaggle():
+    if not DB_PATH.exists():
+        raise SystemExit("mock.db not found - run build_db.py first")
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA foreign_keys = ON")
+    cursor = conn.cursor()
+    df = clean_kaggle()
+    unique_cities = df['City'].dropna().unique()
+    city_map = {}
+
+    for city in unique_cities:
+        cursor.execute("INSERT INTO City (Name) VALUES (?)", (city,))
+        city_map[city] = cursor.lastrowid
+
+    for index, row in df.iterrows():
+        city_id = city_map.get(row['City'])
+        street = row['Street']
+        number = row['Number'] if pd.notna(row['Number']) else None
+
+        postalcode = None
+        contract_id = None
+        size_sqm = int(row['size_sqm']) if pd.notna(row['size_sqm']) else None
+
+        try:
+            cursor.execute('''
+                INSERT INTO address (Postalcode, Street, Number, City_CityID)
+                VALUES (?, ?, ?, ?)
+            ''', (postalcode, street, number, city_id))
+
+            address_id = cursor.lastrowid
+
+            cursor.execute('''
+                INSERT INTO House (address_addressID, size_sqm, contract_contractID)
+                VALUES (?, ?, ?)
+            ''', (address_id, size_sqm, contract_id))
+
+        except sqlite3.IntegrityError as e:
+            print(f"Row {index} skipped due to constraint error: {e}")
+
+    conn.commit()
+    print("Data insertion process completed.")
+    conn.close()
 
 if __name__ == "__main__":
     load()
