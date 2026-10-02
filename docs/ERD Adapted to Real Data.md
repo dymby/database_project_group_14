@@ -53,10 +53,10 @@ erDiagram
         text source_host_id UK "Airbnb host, NULL for mock"
     }
     Renter {
-        int People_PeopleID PK_FK
+        int People_PeopleID PK, FK
     }
     Landlord {
-        int People_PeopleID PK_FK
+        int People_PeopleID PK, FK
     }
     Contract {
         int contractID PK
@@ -65,7 +65,7 @@ erDiagram
         date expiration_date "> start_date"
     }
     House {
-        int address_addressID PK_FK
+        int address_addressID PK, FK
         int size_sqm "5..1000, floor area"
         int lot_size_sqm "plot area"
         int contract_contractID FK "nullable"
