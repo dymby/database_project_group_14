@@ -54,3 +54,20 @@ I first manually extracted the important attributes in the database (ignored att
 Then I focused on incorporating the price attribute into the contract table which turned out to be incredibly difficult so I decided against it. (removed `price` attribute too).
 Since address was hardcoded I had to write a script to seperate the numbers into the `number` attribute and the `street` attribute into in table `Address`.
 When inserting all the values into the Database I added the missing values as `NULL` with a safety trigger for the postalcode attribute (since it can't be `NULL`).
+
+### What the loader does now (`clean_kaggle` / `load_kaggle`)
+Counts come from the actual run.
+
+| Issue | Example | Count | Treatment |
+|---|---|---|---|
+| Fully duplicated rows | same address, city and lot size twice | 66 of 5,555 | dropped, 5,489 loaded |
+| Thousands separator in lot size | `5.440 m²` is 5,440 m², not 5.44 | 522 loaded rows | dot removed before casting to integer |
+| Lot size is the plot, not the dwelling | up to 120,615 m²; 518 lots above 1,000 m² | all rows | stored in `House.lot_size_sqm`; `size_sqm` (floor area, 5-1000) stays `NULL` |
+| Address is one text field | `Bovenweg 223` | all rows | street = text before the first number, `Number` = that number; 0 rows without a number |
+| House letter | `Dorpsstraat 12 a` | 202 | `Letter`, upper-cased |
+| Other text after the number | `Maastrichterweg 62 64`, `Boschweg 75 + 75a`, `Looveen 14 .` | 66 | kept as provided in `Addition` (two of the `.`/`*` rows are a second lot at the same address, so it cannot be dropped) |
+| No postcode | - | all rows | `address.Postalcode = NULL`, street and city stored on the address (see `schema_changes.md` #12) |
+| City already in the database | Amsterdam, Eindhoven, Rotterdam, Utrecht, Tilburg | 5 of 1,075 | existing `City` row reused, 1,070 new cities inserted |
+| Price | `525.000,00 €` (asking price of a sale) | all rows | not loaded: a sale price is not a monthly rent, so it does not belong in `Contract.amount` |
+
+A constraint error during loading now stops the whole build instead of skipping the row, so data cannot go missing unnoticed.

@@ -1,6 +1,6 @@
 # Normalization check with real data (week 5 addition to the week 2 report)
 
-This extends section 5 ("Normal Form") of [`week2_erd_report.pdf`](week2_erd_report.pdf), which concluded that the design was in 3NF. Testing that conclusion against real data showed it was **too optimistic**: one transitive dependency was missed.
+This extends section 5 ("Normal Form") of [`Erd_report.pdf`](Erd_report.pdf), which concluded that the design was in 3NF. Testing that conclusion against real data showed it was **too optimistic**: one transitive dependency was missed.
 
 Notation: `A -> B` means A functionally determines B.
 
@@ -19,7 +19,7 @@ Schema v1: `address(addressID PK, Postalcode, Street, Number, City_CityID)`
 
 Dependencies that hold in the real BAG data (checked on all 499 addresses):
 - `addressID -> Postalcode, Number, ...` (PK)
-- **`Postalcode -> Street, City`** - every one of the 25 postcodes maps to exactly one street (checked by an assertion in `load_real_data.py`); in the Netherlands a full 6-character postcode lies in one street of one place.
+- **`Postalcode -> Street, City`** - every one of the 25 postcodes maps to exactly one street (checked by an assertion in `load_data.py`); in the Netherlands a full 6-character postcode lies in one street of one place.
 
 `Postalcode` is not a key of `address` and `Street`, `City` are not part of a key, so `addressID -> Postalcode -> Street` is a **transitive dependency: 3NF violated** (2NF and 1NF are fine because the key is a single column).
 
@@ -28,6 +28,8 @@ Symptom in the data: the 348 dwellings in *Eerste Atjehstraat* would repeat the 
 Fix (schema v2): decompose into
 - `Postcode(Postalcode PK, Street, City_CityID)`
 - `address(addressID PK, Postalcode FK, Number, Letter, Addition)`
+
+Addition for the Kaggle data (no postcode): `address` also has `Street` and `City_CityID`, but a `CHECK` allows them only when `Postalcode` is `NULL`. So in every row the street is stored in exactly one place, and the dependency `Postalcode -> Street` can never appear inside `address`. For those rows `Street -> City` does not hold either (the same street name exists in several cities), so no new transitive dependency is introduced.
 
 Both tables now have only dependencies on their key. Assumption: postcode -> street holds for the whole Netherlands. Rare exceptions exist in reality; if the group wants to be strict, use (Postalcode, Number) as the determinant instead.
 
@@ -38,7 +40,7 @@ Both tables now have only dependencies on their key. Assumption: postcode -> str
 | `Neighbourhood` | `NeighbourhoodID -> Name, City` | yes (neighbourhood -> city is stored once, not per listing) |
 | `People` | `PeopleID -> everything`; `source_host_id -> First_Name` (candidate key, UNIQUE) | yes: `source_host_id` is a candidate key, so this is not a violation (BCNF also OK) |
 | `Renter`, `Landlord` | PK only | yes |
-| `Contract`, `House` | `PK -> other columns` | yes |
+| `Contract`, `House` | `PK -> other columns` (`size_sqm` and `lot_size_sqm` are independent measurements) | yes |
 | `Listing` | `ListingID -> all`; host attributes were kept in `People`, not repeated per listing | yes |
 
 Insertion in normalized form: the Airbnb file repeats host id and host name on every listing row (e.g. 9,104 hosts over 10,465 listings; a host with 24 listings appears 24 times). The loader inserts each host once into `People` and each neighbourhood once into `Neighbourhood`; `Listing` only stores the foreign keys. The raw file itself was **not** in 3NF (`host_id -> host_name`, `neighbourhood -> ...`, `calculated_host_listings_count` is derived from the other rows) - that derived column is deliberately not loaded.

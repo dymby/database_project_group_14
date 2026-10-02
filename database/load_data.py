@@ -1,13 +1,15 @@
 """
-load_data.py - cleans the two real-world datasets and inserts them into mock.db
+load_data.py - cleans the three real-world datasets and inserts them into mock.db
 in normalized form. Every cleaning decision is documented in docs/data_cleaning.md.
 
 Datasets (raw copies in data/raw/):
   A. Inside Airbnb Amsterdam listings (CC BY 4.0, compiled 2026-06-15)
   B. Amsterdam BAG: nummeraanduidingen + verblijfsobjecten (CC0 1.0, 2022-11-04)
+  C. Kaggle Dutch housing: address, city, lot size
 
 Usage:  python database/load_data.py      (called by build_db.py)
 """
+import re
 import sqlite3
 from pathlib import Path
 
@@ -33,10 +35,10 @@ def clean_bag():
     log("bag_dwelling_rows_raw", len(vbo))
 
     # duplicates
+    log("bag_duplicate_address_ids", int(addr.identificatie.duplicated().sum()))
     addr = addr.drop_duplicates("identificatie")
-    log("bag_duplicate_address_ids", 0)
 
-    # missing postcode -> address cannot be stored (Postalcode NOT NULL / FK)
+    # missing postcode -> address cannot be stored (the postcode is the key to street and city)
     missing_pc = addr.postcode.isna()
     log("bag_dropped_missing_postcode", int(missing_pc.sum()))
     addr = addr[~missing_pc].copy()
@@ -72,15 +74,46 @@ def clean_airbnb():
     return lst
 
 
+def split_address(address):
+    """'Bovenweg 12 a' -> ('Bovenweg', 12, 'A', None)"""
+    m = re.match(r"^(.*?)\s+(\d+)\s*(.*)$", address.strip())
+    if not m:
+        return address.strip(), None, None, None
+    street, number, rest = m.group(1), int(m.group(2)), m.group(3).strip()
+    if len(rest) == 1 and rest.isalpha():
+        return street, number, rest.upper(), None
+    return street, number, None, rest or None
+
+
+def parse_lot_size(text):
+    """'5.440 m²' -> 5440 (the dot is a thousands separator)"""
+    return int(text.replace("m²", "").replace(".", "").strip())
+
+
+def clean_kaggle():
+    df = pd.read_csv(RAW / "kaggle_housing.csv", dtype=str)
+    log("kaggle_rows_raw", len(df))
+    for c in ["Address", "City"]:
+        df[c] = df[c].str.strip()
+    dup = df.duplicated()
+    log("kaggle_duplicate_rows_dropped", int(dup.sum()))
+    df = df[~dup].copy()
+    parts = [split_address(a) for a in df["Address"]]
+    df["street"] = [p[0] for p in parts]
+    df["number"] = pd.array([p[1] for p in parts], dtype="Int64")
+    df["letter"] = [p[2] for p in parts]
+    df["addition"] = [p[3] for p in parts]
+    log("kaggle_address_without_number", int(df.number.isna().sum()))
+    log("kaggle_lot_size_with_thousands_separator", int(df["Lot size (m2)"].str.contains(".", regex=False).sum()))
+    df["lot_size_sqm"] = df["Lot size (m2)"].map(parse_lot_size)
+    return df
+
+
 def none(x):
     return None if pd.isna(x) else x
 
 
-def load():
-    if not DB_PATH.exists():
-        raise SystemExit("mock.db not found - run build_db.py first")
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA foreign_keys = ON")
+def load(conn):
     cur = conn.cursor()
 
     print("Dataset B - BAG")
@@ -119,59 +152,46 @@ def load():
          for r in lst.itertuples()])
     log("loaded_hosts", len(hosts)); log("loaded_neighbourhoods", len(nmap)); log("loaded_listings", len(lst))
 
-    conn.commit()
-    bad = conn.execute("PRAGMA foreign_key_check").fetchall()
-    log("foreign_key_violations", len(bad))
-    conn.close()
 
-def clean_kaggle():
-    df = pd.read_csv(RAW / "kaggle_housing.csv", dtype={"host_id": str})
-    df[['street', 'number']] = df['Address'].str.extract(r'^(.*?)\s+(\d.*)$')
-    df['size_m2'] = df['Lot size (m2)'].str.replace(' m²', '', regex=False).astype(float)
-    return df
+def load_kaggle(conn):
+    cur = conn.cursor()
 
-def load_kaggle():
-    if not DB_PATH.exists():
-        raise SystemExit("mock.db not found - run build_db.py first")
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA foreign_keys = ON")
-    cursor = conn.cursor()
+    print("Dataset C - Kaggle")
     df = clean_kaggle()
-    unique_cities = df['City'].dropna().unique()
-    city_map = {}
+    cur.executemany("INSERT OR IGNORE INTO City (Name) VALUES (?)", [(c,) for c in sorted(df.City.unique())])
+    citymap = dict(cur.execute("SELECT Name, CityID FROM City"))
+    first_id = cur.execute("SELECT IFNULL(MAX(addressID), 0) FROM address").fetchone()[0] + 1
+    cur.executemany(
+        "INSERT INTO address (addressID, Street, City_CityID, Number, Letter, Addition) VALUES (?,?,?,?,?,?)",
+        [(first_id + i, r.street, citymap[r.City], None if pd.isna(r.number) else int(r.number),
+          none(r.letter), none(r.addition)) for i, r in enumerate(df.itertuples())])
+    cur.executemany("INSERT INTO House (address_addressID, lot_size_sqm) VALUES (?,?)",
+                    [(first_id + i, int(r.lot_size_sqm)) for i, r in enumerate(df.itertuples())])
+    log("loaded_kaggle_cities", int(df.City.nunique())); log("loaded_kaggle_addresses", len(df))
+    log("loaded_kaggle_houses", len(df))
 
-    for city in unique_cities:
-        cursor.execute("INSERT INTO City (Name) VALUES (?)", (city,))
-        city_map[city] = cursor.lastrowid
 
-    for index, row in df.iterrows():
-        city_id = city_map.get(row['City'])
-        street = row['Street']
-        number = row['Number'] if pd.notna(row['Number']) else None
+def load_all(db_path=DB_PATH):
+    if not Path(db_path).exists():
+        raise SystemExit("mock.db not found - run build_db.py first")
+    conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA foreign_keys = ON")
+    try:
+        loaded = conn.execute("SELECT (SELECT COUNT(*) FROM address WHERE bag_address_id IS NOT NULL OR Postalcode IS NULL)"
+                              " + (SELECT COUNT(*) FROM Listing)").fetchone()[0]
+        if loaded:
+            raise SystemExit("real data is already loaded - rebuild with build_db.py instead of loading twice")
+        load(conn)
+        load_kaggle(conn)
+        bad = conn.execute("PRAGMA foreign_key_check").fetchall()
+        log("foreign_key_violations", len(bad))
+        if bad:
+            raise SystemExit("foreign key violations after loading - nothing was saved")
+        conn.commit()
+    finally:
+        conn.rollback()
+        conn.close()
 
-        postalcode = None
-        contract_id = None
-        size_sqm = int(row['size_sqm']) if pd.notna(row['size_sqm']) else None
-
-        try:
-            cursor.execute('''
-                INSERT INTO address (Postalcode, Street, Number, City_CityID)
-                VALUES (?, ?, ?, ?)
-            ''', (postalcode, street, number, city_id))
-
-            address_id = cursor.lastrowid
-
-            cursor.execute('''
-                INSERT INTO House (address_addressID, size_sqm, contract_contractID)
-                VALUES (?, ?, ?)
-            ''', (address_id, size_sqm, contract_id))
-
-        except sqlite3.IntegrityError as e:
-            print(f"Row {index} skipped due to constraint error: {e}")
-
-    conn.commit()
-    print("Data insertion process completed.")
-    conn.close()
 
 if __name__ == "__main__":
-    load()
+    load_all()

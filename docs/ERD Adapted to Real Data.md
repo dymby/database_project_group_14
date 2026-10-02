@@ -1,7 +1,7 @@
 # ERD - schema v2 (after week 5)
 
 This diagram documents the schema **as implemented now** (`database/schema.sql`), so it can be
-compared with the original ERD in [`week2_erd_report.pdf`](week2_erd_report.pdf).
+compared with the original ERD in [`Erd_report.pdf`](Erd_report.pdf).
 GitHub renders the Mermaid below automatically.
 
 Changes versus the week 2 ERD are listed under the diagram.
@@ -10,6 +10,7 @@ Changes versus the week 2 ERD are listed under the diagram.
 erDiagram
     City ||--o{ Postcode : "contains"
     City ||--o{ Neighbourhood : "contains"
+    City ||--o{ address : "contains (no postcode)"
     Postcode ||--o{ address : "groups"
     address ||--o| House : "identifies"
     address ||--o{ People : "is home of"
@@ -35,7 +36,9 @@ erDiagram
     }
     address {
         int addressID PK
-        text Postalcode FK
+        text Postalcode FK "NULL if unknown"
+        varchar Street "only without postcode"
+        int City_CityID FK "only without postcode"
         int Number
         text Letter "huisletter"
         varchar Addition "toevoeging"
@@ -63,7 +66,8 @@ erDiagram
     }
     House {
         int address_addressID PK_FK
-        int size_sqm "5..1000"
+        int size_sqm "5..1000, floor area"
+        int lot_size_sqm "plot area"
         int contract_contractID FK "nullable"
     }
     Listing {
@@ -90,8 +94,10 @@ erDiagram
 | **Source-id columns** (`bag_address_id`, `source_host_id`) | traceability, prevents double loading | not in the week 2 ERD |
 | **`Age`, `First_Name` now optional** | Airbnb hosts have neither | week 2 assumed both always known |
 | **`Postalcode` is TEXT, not INT** | `1015 NR` is not a number | week 2 listed `Postalcode (int)` |
+| **`address.Postalcode` optional, `Street`/`City_CityID` on `address`** | Kaggle houses have no postcode | filled only when the postcode is unknown; the view `address_full` returns street and city for every address |
+| **`House.lot_size_sqm`** | Kaggle gives the plot area, not the floor area | `size_sqm` is now optional, one of the two is required |
 
-## Still not modelled (see `week5_review.md`, section 0)
+## Still not modelled
 
 The week 2 ERD gives `Landlord/contractor` a `houseID` so a landlord manages houses.
 **That link is still missing**, in week 3 and here. Until it is added, the database cannot

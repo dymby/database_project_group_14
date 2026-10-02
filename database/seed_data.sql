@@ -5,17 +5,29 @@ INSERT INTO City (Name) VALUES
     ("Utrecht"),
     ("Tilburg");
 
-INSERT INTO address (Postalcode, Street, Number, City_CityID) VALUES
-    ("5611 AB", "Kerkstraat", 12, 1),
-    ("5612 CD", "Stationsweg", 45, 1),
-    ("1012 AB", "Prinsengracht", 120, 2),
-    ("1017 CD", "Leidsegracht", 88, 2),
-    ("3011 AA", "Coolsingel", 25, 3),
-    ("3012 BB", "Westblaak", 67, 3),
-    ("3511 CC", "Oudegracht", 14, 4),
-    ("3521 DD", "Croeselaan", 33, 4),
-    ("5038 EE", "Heuvelstraat", 9, 5),
-    ("5041 FF", "Besterdring", 21, 5);
+INSERT INTO Postcode (Postalcode, Street, City_CityID) VALUES
+    ("5611 AB", "Kerkstraat", 1),
+    ("5612 CD", "Stationsweg", 1),
+    ("1012 AB", "Prinsengracht", 2),
+    ("1017 CD", "Leidsegracht", 2),
+    ("3011 AA", "Coolsingel", 3),
+    ("3012 BB", "Westblaak", 3),
+    ("3511 CC", "Oudegracht", 4),
+    ("3521 DD", "Croeselaan", 4),
+    ("5038 EE", "Heuvelstraat", 5),
+    ("5041 FF", "Besterdring", 5);
+
+INSERT INTO address (Postalcode, Number) VALUES
+    ("5611 AB", 12),
+    ("5612 CD", 45),
+    ("1012 AB", 120),
+    ("1017 CD", 88),
+    ("3011 AA", 25),
+    ("3012 BB", 67),
+    ("3511 CC", 14),
+    ("3521 DD", 33),
+    ("5038 EE", 9),
+    ("5041 FF", 21);
 
 INSERT INTO People (First_Name, Last_Name, Age, address_addressID) VALUES
     ("Jan", "de Vries", 34, 1),

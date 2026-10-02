@@ -1,6 +1,6 @@
 # Week 5 - Real-world data sources
 
-Raw copies are stored unchanged in `data/raw/`. Both datasets are open, need no registration and no payment.
+Raw copies are stored unchanged in `data/raw/`. Datasets A and B are open, need no registration and no payment.
 
 | | Dataset A - Inside Airbnb | Dataset B - Amsterdam BAG |
 |---|---|---|
@@ -22,5 +22,16 @@ The API returns records in ID order, so the 500-row samples are the first 500 re
 
 Attribution required by CC BY 4.0: "Data from Inside Airbnb (insideairbnb.com), CC BY 4.0."
 
-## Notes on the kaggle dataset
+## Dataset C - Kaggle Dutch housing
 This dataset was found on kaggle and contained detailed information for houses in the netherlands, sadly most of the data in there was useless, but address, city and size was used.
+
+| | Dataset C |
+|---|---|
+| **What** | Houses for sale in the Netherlands (address, city, asking price, lot size) |
+| **Source** | **TODO: Kaggle URL** |
+| **Publication date** | **TODO** |
+| **License** | **TODO** |
+| **Raw files** | `kaggle_housing_prices.csv` (5,555 rows, as downloaded), `kaggle_housing.csv` (same rows without the `Price` column; this is the file that is loaded) |
+| **Covers in our DB** | `City` (1,070 new cities), `address` (street and city, no postcode), `House.lot_size_sqm` |
+
+It has no shared key with A or B: no postcode, no BAG id, no host. It overlaps with the other data only through the city name (5 of its 1,075 cities were already in the database).
