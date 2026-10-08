@@ -1,12 +1,8 @@
 -- Author: roshikreddy
---
--- Question: Which neighbourhoods have the highest share of entire homes
--- rather than private rooms among their Airbnb listings?
---
--- Relevance: An entire home listed for tourists is a dwelling taken out of the
--- long-term housing stock, while a spare room is not. Neighbourhoods with a high
--- share are therefore losing the most housing to short stay rental, which is one
--- of the causes of the shortage described in our problem statement.
+/*Joins each listing to its neighbourhood, groups the listings by neighbourhood, 
+and counts two things per group at once: how many listings there are in total, 
+and how many of those are entire homes. Dividing one by the other gives the percentage, 
+and groups with fewer than 50 listings are dropped before sorting by that percentage. */
 SELECT n.Name AS Neighbourhood,
        COUNT(*) AS Total_listings,
        SUM(CASE WHEN l.room_type = 'Entire home/apt' THEN 1 ELSE 0 END) AS Entire_homes,
@@ -18,16 +14,9 @@ GROUP BY n.NeighbourhoodID, n.Name
 HAVING COUNT(*) >= 50
 ORDER BY Pct_entire_homes DESC;
  
--- Author: roshikreddy
---
--- Question: Which entire homes are advertised with a minimum stay of 30 nights
--- or more?
---
--- Relevance: A whole apartment with a one-month minimum is not a holiday rental
--- but a long term let running on a short stay platform. These are homes being
--- used as housing while staying outside normal rental contracts and the
--- protections that come with them, so they matter when measuring how much
--- housing is really available to people looking to live in the city.
+/*Joins each listing to its neighbourhood, then filters down to the rows meeting two conditions at the same time: 
+the listing is an entire home, and its minimum stay is at least 30 nights. No grouping is involved — 
+it returns the individual listings, ordered by the longest minimum stay first. */
 SELECT l.ListingID,
        l.Name,
        n.Name AS Neighbourhood,
