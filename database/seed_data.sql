@@ -1,3 +1,4 @@
+-- Mock data from weeks 3-4. IDs are assigned in insert order, so the numbers below refer to the rows above.
 INSERT INTO City (Name) VALUES
     ("Eindhoven"),
     ("Amsterdam"),

@@ -1,6 +1,7 @@
 
 PRAGMA foreign_keys = ON;
 
+-- Create City table
 CREATE TABLE IF NOT EXISTS City (
     CityID INTEGER PRIMARY KEY AUTOINCREMENT,
     Name VARCHAR(45) NOT NULL UNIQUE
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS Postcode (
 
 -- Create address table
 -- Street and City_CityID are only filled when the postcode is unknown
+-- bag_address_id: id in the BAG dataset, used to trace rows back to the source
 CREATE TABLE IF NOT EXISTS address (
     addressID INTEGER PRIMARY KEY AUTOINCREMENT,
     Postalcode TEXT,
@@ -45,6 +47,7 @@ CREATE TABLE IF NOT EXISTS address (
             OR (Postalcode IS NULL AND Street IS NOT NULL AND City_CityID IS NOT NULL))
 );
 
+-- IFNULL because SQLite treats NULLs as different, so 12 could be inserted twice
 CREATE UNIQUE INDEX IF NOT EXISTS ux_address_unique
     ON address (Postalcode, Number, IFNULL(Letter, ''), IFNULL(Addition, ''))
     WHERE Postalcode IS NOT NULL;
@@ -54,6 +57,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_address_unique_no_postcode
     WHERE Postalcode IS NULL;
 
 -- Create People table
+-- source_host_id: Airbnb host id; Age and names can be missing for hosts
 CREATE TABLE IF NOT EXISTS People (
     PeopleID INTEGER PRIMARY KEY AUTOINCREMENT,
     First_Name VARCHAR(45),
@@ -69,6 +73,7 @@ CREATE TABLE IF NOT EXISTS People (
 );
 
 -- Create Renter table
+-- subtype of People
 CREATE TABLE IF NOT EXISTS Renter (
     People_PeopleID INTEGER PRIMARY KEY,
     CONSTRAINT fk_renter_people
@@ -79,6 +84,7 @@ CREATE TABLE IF NOT EXISTS Renter (
 );
 
 --  Create Landlord table
+-- subtype of People
 CREATE TABLE IF NOT EXISTS Landlord (
     People_PeopleID INTEGER PRIMARY KEY,
     CONSTRAINT fk_landlord_people
@@ -99,6 +105,7 @@ CREATE TABLE IF NOT EXISTS Contract (
 );
 
 -- Create House table
+-- size_sqm = floor area (BAG), lot_size_sqm = lot size (Kaggle)
 CREATE TABLE IF NOT EXISTS House (
     address_addressID INTEGER PRIMARY KEY,
     size_sqm INTEGER CHECK (size_sqm IS NULL OR size_sqm BETWEEN 5 AND 1000),
@@ -133,6 +140,7 @@ CREATE TABLE IF NOT EXISTS Neighbourhood (
 );
 
 -- Create Listing table
+-- Airbnb listing; has no street address, only a neighbourhood
 CREATE TABLE IF NOT EXISTS Listing (
     ListingID INTEGER PRIMARY KEY,
     Name TEXT,
@@ -158,6 +166,7 @@ CREATE TABLE IF NOT EXISTS Listing (
 );
 
 -- Create address_full view
+-- street and city for every address, whether it has a postcode or not
 CREATE VIEW IF NOT EXISTS address_full AS
 SELECT
     address.addressID,

@@ -23,13 +23,13 @@ def get_connection() -> sqlite3.Connection:
         )
  
     conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # access columns by name: row["customer_id"]
+    conn.row_factory = sqlite3.Row  # access columns by name: row["Name"]
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
  
  
 def run_query(sql: str, params: tuple = ()) -> list[dict]:
-
+    """Runs a SELECT and returns the rows as a list of dicts."""
     conn = get_connection()
     try:
         cur = conn.cursor()

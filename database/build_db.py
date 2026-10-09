@@ -40,6 +40,7 @@ def build(db_path=DB_PATH, yes=False):
             print("Aborted.")
             return
  
+    # build in a temporary file and swap it in only if the checks pass
     tmp_path = db_path.with_name(db_path.name + ".tmp")
     tmp_path.unlink(missing_ok=True)
     try:

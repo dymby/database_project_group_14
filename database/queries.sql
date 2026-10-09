@@ -1,4 +1,9 @@
+-- Example queries. Q1-Q4 are from week 3 (mock data), Q5-Q9 from week 5 (real data).
+-- Each query starts with a "-- Q<n>: title" line; run_queries.py splits the file on those.
+-- address_full is a view that gives street and city for every address (see schema.sql).
+
 -- Q1: houses by rent
+-- only houses with a contract (mock data); Landlord is the landlord living at that address, else NULL
 SELECT
     House.address_addressID AS HouseID,
     address_full.Street,
@@ -18,7 +23,9 @@ LEFT JOIN People
     ON People.address_addressID = address_full.addressID
     AND People.PeopleID IN (SELECT People_PeopleID FROM Landlord)
 ORDER BY Contract.amount DESC;
+
 -- Q2: cities with multiple rented houses
+-- houses without a contract are left out by the join
 SELECT
     City.Name AS City,
     COUNT(House.address_addressID) AS Number_of_Houses,
@@ -33,7 +40,9 @@ JOIN Contract
 GROUP BY City.CityID, City.Name
 HAVING COUNT(House.address_addressID) > 1
 ORDER BY Average_Rent DESC;
+
 -- Q3: houses with rent above average
+-- compared with the average over all contracts
 SELECT
     House.address_addressID AS HouseID,
     City.Name AS City,
@@ -52,7 +61,9 @@ WHERE Contract.amount > (
     FROM Contract
 )
 ORDER BY Contract.amount DESC;
+
 -- Q4: people who are neither renter nor landlord
+-- anti-join: no matching row in either subtype table
 SELECT
     People.PeopleID,
     People.First_Name,
@@ -65,6 +76,7 @@ LEFT JOIN Landlord
     ON People.PeopleID = Landlord.People_PeopleID
 WHERE Renter.People_PeopleID IS NULL
   AND Landlord.People_PeopleID IS NULL;
+
 -- Q5: listings and average price per neighbourhood
 SELECT
     Neighbourhood.Name AS Neighbourhood,
@@ -75,7 +87,9 @@ JOIN Neighbourhood
     ON Listing.Neighbourhood_NeighbourhoodID = Neighbourhood.NeighbourhoodID
 GROUP BY Neighbourhood.NeighbourhoodID, Neighbourhood.Name
 ORDER BY Average_Price DESC;
+
 -- Q6: landlords with more than one listing
+-- Airbnb hosts only have a first name
 SELECT
     People.PeopleID,
     People.First_Name,
@@ -86,7 +100,9 @@ JOIN People
 GROUP BY People.PeopleID, People.First_Name
 HAVING COUNT(*) > 1
 ORDER BY Number_of_Listings DESC, People.PeopleID;
+
 -- Q7: houses and average size per street in Amsterdam
+-- joins Postcode directly, so only addresses with a postcode (BAG and mock data)
 SELECT
     Postcode.Street,
     COUNT(*) AS Number_of_Houses,
@@ -101,7 +117,9 @@ JOIN City
 WHERE City.Name = 'Amsterdam'
 GROUP BY Postcode.Street
 ORDER BY Number_of_Houses DESC;
+
 -- Q8: listings without a price per room type
+-- COUNT(price_per_night) skips NULLs, so the difference is the number without a price
 SELECT
     room_type,
     COUNT(*) AS Number_of_Listings,
@@ -110,7 +128,9 @@ SELECT
 FROM Listing
 GROUP BY room_type
 ORDER BY Number_of_Listings DESC;
+
 -- Q9: average lot size per city with at least 20 houses
+-- lot size is only known for the Kaggle houses
 SELECT
     City.Name AS City,
     COUNT(*) AS Number_of_Houses,
@@ -124,4 +144,3 @@ WHERE House.lot_size_sqm IS NOT NULL
 GROUP BY City.CityID, City.Name
 HAVING COUNT(*) >= 20
 ORDER BY Average_Lot_Size_sqm DESC;
-

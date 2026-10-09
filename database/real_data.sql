@@ -1,7 +1,7 @@
 -- real_data.sql - the real-world data as plain INSERT statements.
 --
 -- GENERATED FILE. Produced by database/export_real_data.py from mock.db, after
--- database/load_data.py has cleaned and loaded the two source datasets.
+-- database/load_data.py has cleaned and loaded the three source datasets.
 -- Do not edit by hand: change the cleaning in load_data.py and re-export.
 --
 -- Why this file exists: the cleaning (reformatting postcodes, joining the three
@@ -22,7 +22,7 @@
 --     sqlite3 fresh.db < database/real_data.sql
 --
 -- Sources: Inside Airbnb Amsterdam (CC BY 4.0, compiled 2026-06-15);
---          Amsterdam BAG (CC0 1.0). Full details in docs/data_sources.md.
+--          Amsterdam BAG (CC0 1.0); Kaggle Dutch housing. Full details in docs/data_sources.md.
 
 PRAGMA foreign_keys = ON;
 BEGIN TRANSACTION;

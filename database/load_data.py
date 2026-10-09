@@ -67,6 +67,7 @@ def clean_airbnb():
     log("airbnb_duplicate_ids", int(lst.id.duplicated().sum()))
     for c in ["name", "host_name", "neighbourhood", "room_type"]:
         lst[c] = lst[c].str.strip()
+    # host ids are read as floats ('123.0')
     lst["host_id"] = lst.host_id.str.replace(r"\.0$", "", regex=True)
     log("airbnb_price_missing_set_null", int(lst.price.isna().sum()))
     log("airbnb_host_id_missing", int(lst.host_id.isna().sum()))
@@ -110,12 +111,14 @@ def clean_kaggle():
 
 
 def none(x):
+    """NaN -> None, so SQLite stores NULL."""
     return None if pd.isna(x) else x
 
 
 def load(conn):
     cur = conn.cursor()
 
+    # BAG first: it creates Amsterdam, which the Airbnb neighbourhoods need
     print("Dataset B - BAG")
     addr, houses = clean_bag()
     cur.execute("INSERT OR IGNORE INTO City (Name) VALUES ('Amsterdam')")   # woonplaats 3594
@@ -160,6 +163,7 @@ def load_kaggle(conn):
     df = clean_kaggle()
     cur.executemany("INSERT OR IGNORE INTO City (Name) VALUES (?)", [(c,) for c in sorted(df.City.unique())])
     citymap = dict(cur.execute("SELECT Name, CityID FROM City"))
+    # explicit ids so each House can be linked to its address
     first_id = cur.execute("SELECT IFNULL(MAX(addressID), 0) FROM address").fetchone()[0] + 1
     cur.executemany(
         "INSERT INTO address (addressID, Street, City_CityID, Number, Letter, Addition) VALUES (?,?,?,?,?,?)",
@@ -177,6 +181,7 @@ def load_all(db_path=DB_PATH):
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys = ON")
     try:
+        # BAG or Kaggle addresses, or any listing, mean the real data is already in
         loaded = conn.execute("SELECT (SELECT COUNT(*) FROM address WHERE bag_address_id IS NOT NULL OR Postalcode IS NULL)"
                               " + (SELECT COUNT(*) FROM Listing)").fetchone()[0]
         if loaded:
@@ -189,6 +194,7 @@ def load_all(db_path=DB_PATH):
             raise SystemExit("foreign key violations after loading - nothing was saved")
         conn.commit()
     finally:
+        # no effect after a commit; undoes everything if something failed
         conn.rollback()
         conn.close()
 

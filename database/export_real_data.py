@@ -6,10 +6,12 @@ DB_DIR = Path(__file__).resolve().parent
 DB_PATH = DB_DIR / "mock.db"
 OUT_PATH = DB_DIR / "real_data.sql"
 
+# how rows of each real dataset are recognised
 BAG = "bag_address_id IS NOT NULL"
 KAGGLE = "Postalcode IS NULL"
 HOST = "source_host_id IS NOT NULL"
 
+# (table, insert verb, columns, filter) in foreign key order
 EXPORTS = [
     ("City", "INSERT OR IGNORE", "CityID, Name",
      f"WHERE CityID IN (SELECT City_CityID FROM Postcode WHERE Postalcode IN (SELECT Postalcode FROM address WHERE {BAG}))"),
@@ -33,7 +35,7 @@ HEADER = """\
 -- real_data.sql - the real-world data as plain INSERT statements.
 --
 -- GENERATED FILE. Produced by database/export_real_data.py from mock.db, after
--- database/load_data.py has cleaned and loaded the two source datasets.
+-- database/load_data.py has cleaned and loaded the three source datasets.
 -- Do not edit by hand: change the cleaning in load_data.py and re-export.
 --
 -- Why this file exists: the cleaning (reformatting postcodes, joining the three
@@ -54,7 +56,7 @@ HEADER = """\
 --     sqlite3 fresh.db < database/real_data.sql
 --
 -- Sources: Inside Airbnb Amsterdam (CC BY 4.0, compiled 2026-06-15);
---          Amsterdam BAG (CC0 1.0). Full details in docs/data_sources.md.
+--          Amsterdam BAG (CC0 1.0); Kaggle Dutch housing. Full details in docs/data_sources.md.
 
 PRAGMA foreign_keys = ON;
 BEGIN TRANSACTION;
