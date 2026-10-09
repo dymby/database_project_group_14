@@ -28,9 +28,9 @@ This dataset was found on kaggle and contained detailed information for houses i
 | | Dataset C |
 |---|---|
 | **What** | Houses for sale in the Netherlands (address, city, asking price, lot size) |
-| **Source** | **TODO: Kaggle URL** |
-| **Publication date** | **TODO** |
-| **License** | **TODO** |
+| **Source** | https://www.kaggle.com/datasets/bryan2k19/dutch-house-prices-dataset |
+| **Publication date** | last modified 4 years ago (2022) |
+| **License** | CC BY-NC-SA 4.0 |
 | **Raw files** | `kaggle_housing_prices.csv` (5,555 rows, as downloaded), `kaggle_housing.csv` (same rows without the `Price` column; this is the file that is loaded) |
 | **Covers in our DB** | `City` (1,070 new cities), `address` (street and city, no postcode), `House.lot_size_sqm` |
 
